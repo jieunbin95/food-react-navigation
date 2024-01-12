@@ -3,24 +3,49 @@ import { MEALS } from "../data/dummy-data";
 import MealDetails from "../components/MealDetails";
 import Subtitle from "../components/MealDetail/Subtitle";
 import List from "../components/MealDetail/List";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useContext } from "react";
 import IconButton from "../components/IconButton";
+import { FavoritesContext } from "../store/context/favorites-context.js";
+import { useDispatch, useSelector } from "react-redux";
+import { addFavorite, removeFavorite } from "../store/redux/favorites.js";
 
 function MealDetailScreen({ route, navigation }) {
   const mealId = route.params.mealId;
+  // const favoriteMealsCtx = useContext(FavoritesContext);
+  //const mealFavorite = favoriteMealsCtx.ids.includes(mealId);
+
+  const favoriteMealItem = useSelector((state) => state.favoriteMeals.ids);
+  const mealFavorite = favoriteMealItem.includes(mealId);
+
   const selecteMeal = MEALS.find((item) => item.id === mealId);
 
-  function headerButtonPressHandler() {
-    console.log("press");
+  const dispatch = useDispatch();
+
+  function changeFavoriteStatusHandler() {
+    if (mealFavorite) {
+      //favoriteMealsCtx.removeFavorites(mealId);
+      dispatch(removeFavorite({ id: mealId }));
+      console.log("아웃라인");
+    } else {
+      //favoriteMealsCtx.addFavorites(mealId);
+      dispatch(addFavorite({ id: mealId }));
+      console.log("별");
+    }
   }
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
-        return <IconButton color="yellow" onPress={headerButtonPressHandler} />;
+        return (
+          <IconButton
+            icon={mealFavorite ? "star" : "star-outline"}
+            color="white"
+            onPress={changeFavoriteStatusHandler}
+          />
+        );
       },
     });
-  }, [navigation, headerButtonPressHandler]);
+  }, [navigation, changeFavoriteStatusHandler]);
 
   return (
     <ScrollView style={styles.rootContainer}>
@@ -42,10 +67,8 @@ function MealDetailScreen({ route, navigation }) {
 
           <Subtitle>Steps</Subtitle>
           {selecteMeal.steps.map((item) => (
-            <View style={styles.listItem}>
-              <Text style={styles.itemText} key={item}>
-                {item}
-              </Text>
+            <View style={styles.listItem} key={item}>
+              <Text style={styles.itemText}>{item}</Text>
             </View>
           ))}
         </View>
